@@ -66,27 +66,41 @@ public class MainActivity extends Activity {
         scan_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getPairedDevices();
-                setUpBroadcastReceiver();
+                if( mBluetoothAdapter != null) {
+                    getPairedDevices();
+                    setUpBroadcastReceiver();
+                }
+                else {
+                    // Device does not support Bluetooth
+                    Toast.makeText(getBaseContext(),
+                            "No Bluetooth on this device", Toast.LENGTH_LONG).show();
+                }
             }
         });
         connect_button = (Button) findViewById(R.id.connect_button);
         connect_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TSERVER, "Connect Button setting up server");
-                mTextarea.append("Connect Button: setting up server\n");
-                //make server discoverable for NSECONDS
-                Intent discoverableIntent = new
-                        Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, NSECONDS);
-                startActivity(discoverableIntent);
-                //create server thread
-                server = new AcceptThread();
-                Log.i(TSERVER, "Connect Button spawning server thread");
-                mTextarea.append("Connect Button: spawning server thread " + server + "\n");
-                if (server != null) {   //start server thread
-                    server.start();     //calls AcceptThread's run() method
+                if(mBluetoothAdapter != null) {
+                    Log.i(TSERVER, "Connect Button setting up server");
+                    mTextarea.append("Connect Button: setting up server\n");
+                    //make server discoverable for NSECONDS
+                    Intent discoverableIntent = new
+                            Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+                    discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, NSECONDS);
+                    startActivity(discoverableIntent);
+                    //create server thread
+                    server = new AcceptThread();
+                    Log.i(TSERVER, "Connect Button spawning server thread");
+                    mTextarea.append("Connect Button: spawning server thread " + server + "\n");
+                    if (server != null) {   //start server thread
+                        server.start();     //calls AcceptThread's run() method
+                    }
+                }
+                else {
+                    // Device does not support Bluetooth
+                    Toast.makeText(getBaseContext(),
+                            "No Bluetooth on this device", Toast.LENGTH_LONG).show();
                 }
             }
         });
