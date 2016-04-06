@@ -1,6 +1,8 @@
 package com.example.aaron.talker;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
@@ -22,7 +24,6 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-//import java.util.ArrayList;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Set;
@@ -40,6 +41,8 @@ public class MainActivity extends Activity {
     private ArrayList<BluetoothDevice> mBTdeviceList;    //holds found Bluetooth devices
     private TextView mTextarea;                 //for writing messages to screen
     private AcceptThread server;                //server object
+    static ArrayList<String> mBTdeviceNameList;
+    private DeviceListFragment dlf;
 
     private final BroadcastReceiver mReceiver =        //when activated, scans for Bluetooth devices
             new BroadcastReceiver() {
@@ -57,7 +60,19 @@ public class MainActivity extends Activity {
         mTextarea = (TextView)findViewById(R.id.textView);
         mTextarea.append("My UUID: " + MY_UUID + "\n");
         mBTdeviceList = new ArrayList<>();
+        mBTdeviceNameList = new ArrayList<>();
         setUpButtons();
+        dlf = new DeviceListFragment();
+
+        // Check that the activity is using FrameLayout
+        if (findViewById(R.id.device_list_container) != null) {
+
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+            transaction.add(R.id.device_list_container, dlf);
+            transaction.commit();
+        }
     }
 
     private void setUpButtons() {
@@ -68,6 +83,7 @@ public class MainActivity extends Activity {
         scan_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mBTdeviceList.clear();
                 if( mBluetoothAdapter != null) {
                     getPairedDevices();
                     setUpBroadcastReceiver();
@@ -205,7 +221,10 @@ public class MainActivity extends Activity {
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
             mBTdeviceList.add(device);
+            mBTdeviceNameList.add(device.getName());
             Log.d("FOUND DEVICE", device.getName());
+
+
         }
     }
 
