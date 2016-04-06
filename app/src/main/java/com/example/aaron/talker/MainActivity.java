@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 //import java.util.ArrayList;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,7 +37,7 @@ public class MainActivity extends Activity {
     private UUID MY_UUID;
     private final String SERVICE_NAME = "Talker";
     private BluetoothAdapter mBluetoothAdapter; //holds the Bluetooth Adapter
-    //private ArrayList<Object> mBTdeviceList;    //holds found Bluetooth devices
+    private ArrayList<BluetoothDevice> mBTdeviceList;    //holds found Bluetooth devices
     private TextView mTextarea;                 //for writing messages to screen
     private AcceptThread server;                //server object
 
@@ -55,6 +56,7 @@ public class MainActivity extends Activity {
         MY_UUID = UUID.fromString(MY_UUID_STRING);
         mTextarea = (TextView)findViewById(R.id.textView);
         mTextarea.append("My UUID: " + MY_UUID + "\n");
+        mBTdeviceList = new ArrayList<>();
         setUpButtons();
     }
 
@@ -81,7 +83,7 @@ public class MainActivity extends Activity {
         connect_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mBluetoothAdapter != null) {
+                if (mBluetoothAdapter != null) {
                     Log.i(TSERVER, "Connect Button setting up server");
                     mTextarea.append("Connect Button: setting up server\n");
                     //make server discoverable for NSECONDS
@@ -96,8 +98,7 @@ public class MainActivity extends Activity {
                     if (server != null) {   //start server thread
                         server.start();     //calls AcceptThread's run() method
                     }
-                }
-                else {
+                } else {
                     // Device does not support Bluetooth
                     Toast.makeText(getBaseContext(),
                             "No Bluetooth on this device", Toast.LENGTH_LONG).show();
@@ -158,7 +159,7 @@ public class MainActivity extends Activity {
 
     private void getPairedDevices() {//find already known paired devices
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        Log.i(TCLIENT,"--------------------------\ngetPairedDevices() - Known Paired Devices");
+        Log.i(TCLIENT, "--------------------------\ngetPairedDevices() - Known Paired Devices");
         // If there are paired devices
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
@@ -179,24 +180,32 @@ public class MainActivity extends Activity {
 
     //called by Broadcast Reciever callback when a new BlueTooth device is found
     private void handleBTDevice(Intent intent) {
-        Log.i(TCLIENT, "onReceive() -- starting   <<<<--------------------");
+//        Log.i(TCLIENT, "onReceive() -- starting   <<<<--------------------");
+//        String action = intent.getAction();
+//        // When discovery finds a device
+//        if  (BluetoothDevice.ACTION_FOUND.equals(action)) {
+//            // Get the BluetoothDevice object from the Intent
+//            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+//            String deviceName = device.getName();
+//            Log.i(TCLIENT, deviceName + "\n" + device);
+//            mTextarea.append(deviceName + ",  " + device + "\n");
+//            if (deviceName.length() > 3) { //for now, looking for MSU prefix
+//                String prefix = deviceName.substring(0, 3);
+//                mTextarea.append("Prefix = " + prefix + "\n    ");
+//                if (prefix.equals("MSU")) {//This is the server
+//                    mBluetoothAdapter.cancelDiscovery();
+//                    ConnectThread client = new ConnectThread(device);
+//                    client.start();
+//                }
+//            }
+//        }
+
         String action = intent.getAction();
-        // When discovery finds a device
-        if  (BluetoothDevice.ACTION_FOUND.equals(action)) {
-            // Get the BluetoothDevice object from the Intent
+        if (BluetoothDevice.ACTION_FOUND.equals(action)){
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            String deviceName = device.getName();
-            Log.i(TCLIENT, deviceName + "\n" + device);
-            mTextarea.append(deviceName + ",  " + device + "\n");
-            if (deviceName.length() > 3) { //for now, looking for MSU prefix
-                String prefix = deviceName.substring(0, 3);
-                mTextarea.append("Prefix = " + prefix + "\n    ");
-                if (prefix.equals("MSU")) {//This is the server
-                    mBluetoothAdapter.cancelDiscovery();
-                    ConnectThread client = new ConnectThread(device);
-                    client.start();
-                }
-            }
+
+            mBTdeviceList.add(device);
+            Log.d("FOUND DEVICE", device.getName());
         }
     }
 
