@@ -38,10 +38,8 @@ public class MainActivity extends Activity {
     private UUID MY_UUID;
     private final String SERVICE_NAME = "Talker";
     private BluetoothAdapter mBluetoothAdapter; //holds the Bluetooth Adapter
-    private ArrayList<BluetoothDevice> mBTdeviceList;    //holds found Bluetooth devices
     private TextView mTextarea;                 //for writing messages to screen
     private AcceptThread server;                //server object
-    static ArrayList<String> mBTdeviceNameList;
     private DeviceListFragment dlf;
 
     private final BroadcastReceiver mReceiver =        //when activated, scans for Bluetooth devices
@@ -59,20 +57,13 @@ public class MainActivity extends Activity {
         MY_UUID = UUID.fromString(MY_UUID_STRING);
         mTextarea = (TextView)findViewById(R.id.textView);
         mTextarea.append("My UUID: " + MY_UUID + "\n");
-        mBTdeviceList = new ArrayList<>();
-        mBTdeviceNameList = new ArrayList<>();
-        setUpButtons();
+
         dlf = new DeviceListFragment();
 
+        setUpButtons();
+
         // Check that the activity is using FrameLayout
-        if (findViewById(R.id.device_list_container) != null) {
 
-            FragmentManager fragmentManager = getFragmentManager();
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-
-            transaction.add(R.id.device_list_container, dlf);
-            transaction.commit();
-        }
     }
 
     private void setUpButtons() {
@@ -83,10 +74,17 @@ public class MainActivity extends Activity {
         scan_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mBTdeviceList.clear();
                 if( mBluetoothAdapter != null) {
                     getPairedDevices();
                     setUpBroadcastReceiver();
+                    if (findViewById(R.id.device_list_container) != null) {
+                        FragmentManager fragmentManager = getFragmentManager();
+                        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+                        transaction.replace(R.id.device_list_container, dlf);
+                        transaction.commit();
+                    }
+
                 }
                 else {
                     // Device does not support Bluetooth
@@ -220,10 +218,15 @@ public class MainActivity extends Activity {
         if (BluetoothDevice.ACTION_FOUND.equals(action)){
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-            mBTdeviceList.add(device);
-            mBTdeviceNameList.add(device.getName());
-            Log.d("FOUND DEVICE", device.getName());
+            if (device != null) {
+                dlf.mBTdeviceList.add(device);
+                dlf.mBTdeviceNameList.add(device.getName());
+                Log.d("FOUND DEVICE", device.getName());
 
+                dlf.setAdapter();
+
+
+            }
 
         }
     }

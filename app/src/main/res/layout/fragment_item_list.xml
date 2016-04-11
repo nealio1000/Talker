@@ -9,5 +9,5 @@
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
-    tools:context="com.example.aaron.talker.DeviceListFragment"
+    tools:context=".DeviceListFragment"
     tools:listitem="@layout/device_list_fragment_item" />

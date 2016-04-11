@@ -1,48 +1,42 @@
 package com.example.aaron.talker;
 
 import android.app.ListFragment;
-import android.content.Context;
-import android.net.Uri;
+import android.bluetooth.BluetoothDevice;
 import android.os.Build;
 import android.os.Bundle;
-import android.app.Fragment;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.util.ArrayList;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link DeviceListFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link DeviceListFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class DeviceListFragment extends ListFragment {
 
+    public ArrayList<BluetoothDevice> mBTdeviceList;
+    public ArrayList<String> mBTdeviceNameList;
+    ArrayAdapter<String> adapter;
 
-    public interface OnDeviceSelectedListener{
 
-        public void deviceSelected(int position);
 
-    }
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mBTdeviceList = new ArrayList<>();
+        mBTdeviceNameList = new ArrayList<>();
+    }
+
+    public void setAdapter(){
         int layout = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ? android.R.layout.simple_expandable_list_item_1 : android.R.layout.simple_expandable_list_item_1;
-
-
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), layout, MainActivity.mBTdeviceNameList);
-
+        adapter = new ArrayAdapter<>(getActivity(), layout, mBTdeviceNameList);
         setListAdapter(adapter);
+    }
 
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id){
 
     }
 }
