@@ -17,10 +17,6 @@ public class DeviceListFragment extends ListFragment {
     public ArrayList<String> mBTdeviceNameList;
     ArrayAdapter<String> adapter;
 
-
-
-
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

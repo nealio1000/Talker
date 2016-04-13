@@ -194,40 +194,24 @@ public class MainActivity extends Activity {
 
     //called by Broadcast Reciever callback when a new BlueTooth device is found
     private void handleBTDevice(Intent intent) {
-//        Log.i(TCLIENT, "onReceive() -- starting   <<<<--------------------");
-//        String action = intent.getAction();
-//        // When discovery finds a device
-//        if  (BluetoothDevice.ACTION_FOUND.equals(action)) {
-//            // Get the BluetoothDevice object from the Intent
-//            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-//            String deviceName = device.getName();
-//            Log.i(TCLIENT, deviceName + "\n" + device);
-//            mTextarea.append(deviceName + ",  " + device + "\n");
-//            if (deviceName.length() > 3) { //for now, looking for MSU prefix
-//                String prefix = deviceName.substring(0, 3);
-//                mTextarea.append("Prefix = " + prefix + "\n    ");
-//                if (prefix.equals("MSU")) {//This is the server
-//                    mBluetoothAdapter.cancelDiscovery();
-//                    ConnectThread client = new ConnectThread(device);
-//                    client.start();
-//                }
-//            }
-//        }
+        Log.i(TCLIENT, "onReceive() -- starting   <<<<--------------------");
+
+//      mBluetoothAdapter.cancelDiscovery();
+//      ConnectThread client = new ConnectThread(device);
+//      client.start();
+
 
         String action = intent.getAction();
         if (BluetoothDevice.ACTION_FOUND.equals(action)){
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
+            String deviceName = device.getName();
+            Log.i(TCLIENT, deviceName + "\n" + device);
             if (device != null) {
                 dlf.mBTdeviceList.add(device);
                 dlf.mBTdeviceNameList.add(device.getName());
                 Log.d("FOUND DEVICE", device.getName());
-
                 dlf.setAdapter();
-
-
             }
-
         }
     }
 
