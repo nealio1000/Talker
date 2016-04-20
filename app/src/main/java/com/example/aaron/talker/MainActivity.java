@@ -16,20 +16,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-//import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-public class MainActivity extends Activity {
+
+public class MainActivity extends Activity implements DeviceListFragment.OnDeviceSelectedListener{
     public final String TCLIENT = "Talker Client";  //for Log.X
     public final String TSERVER = "Talker SERVER";  //for Log.X
     public final int REQUEST_ENABLE_BT = 3313;  //our own code used with Intents
@@ -55,7 +53,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         MY_UUID = UUID.fromString(MY_UUID_STRING);
-        mTextarea = (TextView)findViewById(R.id.textView);
+        mTextarea = (TextView) findViewById(R.id.textView);
         mTextarea.append("My UUID: " + MY_UUID + "\n");
 
         dlf = new DeviceListFragment();
@@ -74,7 +72,7 @@ public class MainActivity extends Activity {
         scan_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if( mBluetoothAdapter != null) {
+                if (mBluetoothAdapter != null) {
                     getPairedDevices();
                     setUpBroadcastReceiver();
                     if (findViewById(R.id.device_list_container) != null) {
@@ -85,8 +83,7 @@ public class MainActivity extends Activity {
                         transaction.commit();
                     }
 
-                }
-                else {
+                } else {
                     // Device does not support Bluetooth
                     Toast.makeText(getBaseContext(),
                             "No Bluetooth on this device", Toast.LENGTH_LONG).show();
@@ -145,7 +142,7 @@ public class MainActivity extends Activity {
     @Override
     public void onResume() {
         super.onResume();
-        mBluetoothAdapter   = BluetoothAdapter.getDefaultAdapter();
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         Log.i("Bluetooth Test", "onResume()");
         if (mBluetoothAdapter == null) {
             // Device does not support Bluetooth
@@ -181,7 +178,7 @@ public class MainActivity extends Activity {
                 mTextarea.append("" + device.getName() + "\n" + device + "\n");
             }
         }
-        Log.i(TCLIENT,"getPairedDevices() - End of Known Paired Devices\n-------------------------");
+        Log.i(TCLIENT, "getPairedDevices() - End of Known Paired Devices\n-------------------------");
     }
 
     private void setUpBroadcastReceiver() { //scan for Bluetooth devices in the area
@@ -200,13 +197,12 @@ public class MainActivity extends Activity {
 //      ConnectThread client = new ConnectThread(device);
 //      client.start();
 
-
         String action = intent.getAction();
-        if (BluetoothDevice.ACTION_FOUND.equals(action)){
+        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             String deviceName = device.getName();
             Log.i(TCLIENT, deviceName + "\n" + device);
-            if (device != null) {
+            if (deviceName != null) {
                 dlf.mBTdeviceList.add(device);
                 dlf.mBTdeviceNameList.add(device.getName());
                 Log.d("FOUND DEVICE", device.getName());
@@ -223,6 +219,31 @@ public class MainActivity extends Activity {
 
     public void echoMsg(String msg) {
         mTextarea.append(msg);
+    }
+
+    @Override
+    public void onDeviceSelected(int position, String deviceName) {
+        int NSECONDS = 255;
+        if (mBluetoothAdapter != null) {
+            Log.i(TSERVER, "Connect Button setting up server");
+            mTextarea.append("Connect Button: setting up server\n");
+            //make server discoverable for NSECONDS
+            Intent discoverableIntent = new
+                    Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, NSECONDS);
+            startActivity(discoverableIntent);
+            //create server thread
+            server = new AcceptThread();
+            Log.i(TSERVER, "Connect Button spawning server thread");
+            mTextarea.append("Connect Button: spawning server thread " + server + "\n");
+            if (server != null) {   //start server thread
+                server.start();     //calls AcceptThread's run() method
+            }
+        } else {
+            // Device does not support Bluetooth
+            Toast.makeText(getBaseContext(),
+                    "No Bluetooth on this device", Toast.LENGTH_LONG).show();
+        }
     }
 
     ///////////////////////////////////// Client Thread to talk to Server here //////////////////////
@@ -242,7 +263,7 @@ public class MainActivity extends Activity {
                 // MY_UUID is the app's UUID string, also used by the server code
                 tmp = mmDevice.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (IOException e) {
-                Log.i(TCLIENT,"IOException when creating RFcommSocket\n" + e);
+                Log.i(TCLIENT, "IOException when creating RFcommSocket\n" + e);
             }
             mmSocket = tmp;
         }
@@ -256,12 +277,12 @@ public class MainActivity extends Activity {
                 // until it succeeds or throws an exception after 12 seconds (or so)
                 mmSocket.connect();
             } catch (IOException connectException) {
-                Log.i(TCLIENT,"Connect IOException when trying socket connection\n" + connectException);
+                Log.i(TCLIENT, "Connect IOException when trying socket connection\n" + connectException);
                 // Unable to connect; close the socket and get out
                 try {
                     mmSocket.close();
                 } catch (IOException closeException) {
-                    Log.i(TCLIENT,"Close IOException when trying socket connection\n" + closeException);
+                    Log.i(TCLIENT, "Close IOException when trying socket connection\n" + closeException);
                 }
                 return;
             }
@@ -274,10 +295,10 @@ public class MainActivity extends Activity {
         private void manageConnectedSocket(BluetoothSocket socket) {
             OutputStream out;
             String theMessage = "ABC";
-            byte [] msg =  theMessage.getBytes();
+            byte[] msg = theMessage.getBytes();
             try {
                 out = socket.getOutputStream();
-                Log.i(TCLIENT,"Sending the message: [" + theMessage + "]");
+                Log.i(TCLIENT, "Sending the message: [" + theMessage + "]");
                 out.write(msg);
             } catch (IOException ioe) {
                 Log.e(TCLIENT, "IOException when opening outputStream\n" + ioe);
@@ -286,7 +307,9 @@ public class MainActivity extends Activity {
             //cancel();
         }
 
-        /** Will cancel an in-progress connection, and close the socket */
+        /**
+         * Will cancel an in-progress connection, and close the socket
+         */
         public void cancel() {
             try {
                 mmSocket.close();
@@ -300,7 +323,7 @@ public class MainActivity extends Activity {
     /////////////////////////////////////  ServerSocket stuff here ///////////////////////////
 
     private class AcceptThread extends Thread {  //from android developer
-        private  BluetoothServerSocket mmServerSocket = null;
+        private BluetoothServerSocket mmServerSocket = null;
 
         public AcceptThread() {
             // Use a temporary object that is later assigned to mmServerSocket,
@@ -309,7 +332,9 @@ public class MainActivity extends Activity {
             try {
                 // MY_UUID is the app's UUID string, also used by the client code
                 tmp = mBluetoothAdapter.listenUsingRfcommWithServiceRecord(SERVICE_NAME, MY_UUID);
-            } catch (IOException e) {return; }
+            } catch (IOException e) {
+                return;
+            }
             Log.i(TSERVER, "AcceptThread registered the server\n");
             mmServerSocket = tmp;
         }
@@ -318,7 +343,7 @@ public class MainActivity extends Activity {
             BluetoothSocket socket;
             // Keep listening until exception occurs or a socket is returned
             while (true) {
-                Log.i(TSERVER,"Server Looking for a Connection");
+                Log.i(TSERVER, "Server Looking for a Connection");
                 try {
                     socket = mmServerSocket.accept();  //blocks until connection made or exception
                 } catch (IOException e) {
@@ -339,7 +364,7 @@ public class MainActivity extends Activity {
             Log.i(TSERVER, "\nManaging the Socket\n");
             InputStream in;
             final int nBytes;
-            byte [] msg = new byte[255]; //arbitrary size
+            byte[] msg = new byte[255]; //arbitrary size
             try {
                 in = socket.getInputStream();
                 nBytes = in.read(msg);
@@ -364,7 +389,9 @@ public class MainActivity extends Activity {
             }
         }
 
-        /** Will cancel the listening socket, and cause the thread to finish */
+        /**
+         * Will cancel the listening socket, and cause the thread to finish
+         */
         public void cancel() {
             try {
                 mmServerSocket.close();
